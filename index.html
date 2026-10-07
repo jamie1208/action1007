@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>經濟系營隊活動報名系統</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter & Noto Sans TC -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        econ: {
+                            50: '#f0f4f8',
+                            100: '#d9e2ec',
+                            500: '#334e68',
+                            600: '#243b53',
+                            700: '#102a43',
+                            800: '#0b1b2b',
+                            accent: '#d97706', // Warm Amber
+                            accentHover: '#b45309'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #ticketModal, #ticketModal * {
+                visibility: visible;
+            }
+            #ticketModal {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                background: white;
+                display: flex !important;
+                justify-content: center;
+                align-items: center;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+        .ticket-stub-left {
+            background-image: radial-gradient(circle at 0 50%, transparent 12px, #ffffff 13px);
+        }
+        .ticket-stub-right {
+            background-image: radial-gradient(circle at 100% 50%, transparent 12px, #ffffff 13px);
+        }
+    </style>
+</head>
+<body class="bg-slate-100 font-sans text-slate-800 min-h-screen flex flex-col justify-between">
+
+    <!-- Top Navigation Bar -->
+    <header class="bg-econ-700 text-white shadow-md border-b border-econ-600">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-lg bg-amber-500 flex items-center justify-center text-econ-800 text-xl font-bold shadow">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg sm:text-xl tracking-tight">國立大學 經濟學系</h1>
+                    <p class="text-xs text-slate-300">2026 經濟營隊活動線上報名系統</p>
+                </div>
+            </div>
+            
+            <!-- Dynamic Feed Toggle Button -->
+            <button id="toggleLiveBtn" onclick="openPasswordModal()" class="flex items-center space-x-2 bg-econ-600 hover:bg-econ-500 text-amber-300 hover:text-white px-3 sm:px-4 py-2 rounded-xl text-sm font-medium transition duration-200 border border-econ-500 shadow-sm">
+                <i class="fa-solid fa-lock text-amber-400" id="lockIcon"></i>
+                <span class="hidden sm:inline">檢視最新報名動態</span>
+                <span class="sm:hidden">報名動態</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-5xl mx-auto px-4 py-8 w-full flex-grow">
+        
+        <!-- Event Announcement Header Banner -->
+        <div class="bg-gradient-to-r from-econ-800 via-econ-700 to-slate-800 rounded-3xl p-6 sm:p-8 text-white shadow-xl mb-8 relative overflow-hidden border border-slate-700">
+            <div class="absolute -right-10 -bottom-10 opacity-10 text-white text-9xl pointer-events-none">
+                <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            
+            <div class="relative z-10 max-w-3xl">
+                <div class="inline-flex items-center space-x-2 bg-amber-500/20 border border-amber-400/40 text-amber-300 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider mb-4">
+                    <i class="fa-solid fa-calendar-check"></i>
+                    <span>限定活動報名</span>
+                </div>
+                <h2 class="text-2xl sm:text-4xl font-extrabold tracking-tight mb-3 text-white">
+                    2026 經濟系迎新暨職涯趨勢營隊
+                </h2>
+                <p class="text-slate-300 text-sm sm:text-base mb-6 leading-relaxed">
+                    歡迎加入經濟學系的年度盛會！本營隊將帶領大家探索經濟前沿、交流學習心得，並進行分組小組研討活動。請填寫下方報名資訊，提交後將為您生成專屬入場憑證。
+                </p>
+                
+                <!-- Event Info Badges -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                    <div class="flex items-center space-x-3 bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-xl border border-white/10">
+                        <i class="fa-regular fa-calendar-days text-amber-400 text-lg"></i>
+                        <div>
+                            <span class="text-slate-400 text-xs block">活動日期</span>
+                            <span class="font-semibold">10 月 7 日 (星期三)</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3 bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-xl border border-white/10">
+                        <i class="fa-regular fa-clock text-amber-400 text-lg"></i>
+                        <div>
+                            <span class="text-slate-400 text-xs block">活動時間</span>
+                            <span class="font-semibold">晚上 7:00 - 9:00 (18:45 開始報到)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Section -->
+        <div class="bg-white rounded-3xl shadow-xl border border-slate-200/80 p-6 sm:p-10 max-w-2xl mx-auto">
+            <div class="border-b border-slate-100 pb-5 mb-6">
+                <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square text-econ-500"></i>
+                    活動報名表單
+                </h3>
+                <p class="text-xs text-slate-500 mt-1">請確實填寫個人學籍資訊，以確保您的活動權益</p>
+            </div>
+
+            <form id="registrationForm" onsubmit="handleFormSubmit(event)" class="space-y-6">
+                
+                <!-- Student ID Field -->
+                <div>
+                    <label for="studentId" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+                        學號 <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                            <i class="fa-solid fa-id-card text-sm"></i>
+                        </div>
+                        <input type="text" id="studentId" required placeholder="例：B11301001" 
+                            class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-econ-500 focus:border-econ-500 text-slate-800 text-sm font-medium transition duration-150 outline-none">
+                    </div>
+                </div>
+
+                <!-- Student Name Field -->
+                <div>
+                    <label for="studentName" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+                        姓名 <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                            <i class="fa-solid fa-user text-sm"></i>
+                        </div>
+                        <input type="text" id="studentName" required placeholder="請輸入真實姓名" 
+                            class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-econ-500 focus:border-econ-500 text-slate-800 text-sm font-medium transition duration-150 outline-none">
+                    </div>
+                </div>
+
+                <!-- Group Selection Field -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+                        報名分組 <span class="text-red-500">*</span>
+                    </label>
+                    <div class="grid grid-cols-3 gap-3">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="group" value="A" required class="peer sr-only">
+                            <div class="flex flex-col items-center justify-center p-3 text-center bg-slate-50 border-2 border-slate-200 rounded-xl peer-checked:border-econ-500 peer-checked:bg-econ-50 peer-checked:text-econ-700 transition duration-150 hover:border-slate-300">
+                                <span class="text-xs font-semibold text-slate-400 peer-checked:text-econ-500 mb-0.5">GROUP</span>
+                                <span class="text-lg font-bold">A 組</span>
+                                <span class="text-[10px] text-slate-500">個體經濟研討</span>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="group" value="B" required class="peer sr-only">
+                            <div class="flex flex-col items-center justify-center p-3 text-center bg-slate-50 border-2 border-slate-200 rounded-xl peer-checked:border-econ-500 peer-checked:bg-econ-50 peer-checked:text-econ-700 transition duration-150 hover:border-slate-300">
+                                <span class="text-xs font-semibold text-slate-400 peer-checked:text-econ-500 mb-0.5">GROUP</span>
+                                <span class="text-lg font-bold">B 組</span>
+                                <span class="text-[10px] text-slate-500">總體經濟與金融</span>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="group" value="C" required class="peer sr-only">
+                            <div class="flex flex-col items-center justify-center p-3 text-center bg-slate-50 border-2 border-slate-200 rounded-xl peer-checked:border-econ-500 peer-checked:bg-econ-50 peer-checked:text-econ-700 transition duration-150 hover:border-slate-300">
+                                <span class="text-xs font-semibold text-slate-400 peer-checked:text-econ-500 mb-0.5">GROUP</span>
+                                <span class="text-lg font-bold">C 組</span>
+                                <span class="text-[10px] text-slate-500">數據分析與科技</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Email Field -->
+                <div>
+                    <label for="studentEmail" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+                        電子信箱 <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                            <i class="fa-solid fa-envelope text-sm"></i>
+                        </div>
+                        <input type="email" id="studentEmail" required placeholder="example@university.edu.tw" 
+                            class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-econ-500 focus:border-econ-500 text-slate-800 text-sm font-medium transition duration-150 outline-none">
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="w-full bg-econ-700 hover:bg-econ-800 text-white font-bold py-3.5 px-6 rounded-xl shadow-lg hover:shadow-xl transition duration-200 transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-paper-plane text-amber-400"></i>
+                    <span>送出報名資料並取得入場證明</span>
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <!-- Password Verification Modal -->
+    <div id="passwordModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-200 animate-fadeIn transform transition-all">
+            <div class="flex justify-between items-center mb-4">
+                <div class="flex items-center space-x-2 text-econ-700 font-bold text-lg">
+                    <i class="fa-solid fa-shield-halved text-amber-500"></i>
+                    <span>解鎖最新報名動態</span>
+                </div>
+                <button onclick="closePasswordModal()" class="text-slate-400 hover:text-slate-600 transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <p class="text-xs text-slate-500 mb-4">這是一項受保護的功能，請輸入密碼解鎖權限 (預設密碼：<span class="font-mono bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded font-bold">1234</span>)</p>
+            
+            <form onsubmit="verifyPassword(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">管理者密碼</label>
+                    <input type="password" id="feedPassword" required placeholder="請輸入密碼" 
+                        class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-econ-500 focus:border-econ-500 text-sm outline-none">
+                    <p id="passwordError" class="text-red-500 text-xs mt-1 hidden font-medium">
+                        <i class="fa-solid fa-circle-exclamation mr-1"></i>密碼錯誤，請重新輸入
+                    </p>
+                </div>
+                <div class="flex space-x-3 pt-2">
+                    <button type="button" onclick="closePasswordModal()" class="w-1/2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-sm transition">
+                        取消
+                    </button>
+                    <button type="submit" class="w-1/2 px-4 py-2.5 bg-econ-700 hover:bg-econ-800 text-white font-semibold rounded-xl text-sm shadow transition">
+                        驗證並檢視
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Live Activity Modal (Hidden Password Protected View) -->
+    <div id="liveFeedModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col border border-slate-200 overflow-hidden">
+            <!-- Modal Header -->
+            <div class="bg-econ-800 text-white p-5 sm:p-6 flex justify-between items-center flex-shrink-0">
+                <div class="flex items-center space-x-3">
+                    <div class="w-3 h-3 rounded-full bg-emerald-400 animate-ping"></div>
+                    <div>
+                        <h3 class="font-bold text-lg flex items-center gap-2">
+                            <span>最新報名動態看板</span>
+                            <span class="text-xs bg-amber-500 text-econ-900 px-2 py-0.5 rounded-full font-extrabold">即時數據</span>
+                        </h3>
+                        <p class="text-xs text-slate-300">已解鎖管理者模式 (密碼驗證通過)</p>
+                    </div>
+                </div>
+                <button onclick="closeLiveFeedModal()" class="text-slate-300 hover:text-white transition p-1">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Dashboard Statistics Cards -->
+            <div class="p-6 bg-slate-50 border-b border-slate-200 grid grid-cols-4 gap-3 text-center flex-shrink-0">
+                <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-200">
+                    <span class="text-xs text-slate-400 font-medium block">總報名人數</span>
+                    <span id="statTotal" class="text-xl sm:text-2xl font-black text-econ-700">0</span>
+                </div>
+                <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-200">
+                    <span class="text-xs text-slate-400 font-medium block">A 組人數</span>
+                    <span id="statGroupA" class="text-xl sm:text-2xl font-black text-blue-600">0</span>
+                </div>
+                <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-200">
+                    <span class="text-xs text-slate-400 font-medium block">B 組人數</span>
+                    <span id="statGroupB" class="text-xl sm:text-2xl font-black text-emerald-600">0</span>
+                </div>
+                <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-200">
+                    <span class="text-xs text-slate-400 font-medium block">C 組人數</span>
+                    <span id="statGroupC" class="text-xl sm:text-2xl font-black text-amber-600">0</span>
+                </div>
+            </div>
+
+            <!-- GAS API Configuration bar -->
+            <div class="px-6 py-2.5 bg-slate-100 border-b border-slate-200 flex flex-wrap items-center justify-between text-xs gap-2">
+                <div class="flex items-center space-x-2 text-slate-600">
+                    <i class="fa-solid fa-link text-emerald-600"></i>
+                    <span class="font-medium">Google 試算表 API 狀態：</span>
+                    <span id="apiStatusBadge" class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold">已連線</span>
+                </div>
+                <button onclick="openAddAdminModal()" class="bg-econ-700 hover:bg-econ-800 text-white px-3 py-1.5 rounded-lg font-semibold shadow-sm transition flex items-center space-x-1">
+                    <i class="fa-solid fa-plus text-xs"></i>
+                    <span>手動新增紀錄</span>
+                </button>
+            </div>
+
+            <!-- Registrations List Table -->
+            <div class="p-6 overflow-y-auto flex-grow relative">
+                <!-- Loading Overlay -->
+                <div id="tableLoading" class="absolute inset-0 bg-white/80 backdrop-blur-xs flex items-center justify-center z-10 hidden">
+                    <div class="flex items-center space-x-2 text-econ-700 font-bold">
+                        <i class="fa-solid fa-circle-notch fa-spin text-xl"></i>
+                        <span>同步試算表資料中...</span>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center mb-3">
+                    <h4 class="font-bold text-sm text-slate-700">即時報名資料庫列表 (支援編輯與刪除)</h4>
+                    <button onclick="fetchRegistrationsFromAPI()" class="text-xs text-econ-600 hover:text-econ-800 font-medium flex items-center gap-1">
+                        <i class="fa-solid fa-rotate text-xs"></i> 重新整理
+                    </button>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs sm:text-sm">
+                        <thead class="bg-slate-100 text-slate-500 uppercase text-[11px] tracking-wider font-semibold">
+                            <tr>
+                                <th class="p-3 rounded-l-lg">時間</th>
+                                <th class="p-3">學號</th>
+                                <th class="p-3">姓名</th>
+                                <th class="p-3">分組</th>
+                                <th class="p-3">電子信箱</th>
+                                <th class="p-3 text-center rounded-r-lg">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="feedTableBody" class="divide-y divide-slate-100">
+                            <!-- Dynamic Content Inserted Here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-4 bg-slate-100 border-t border-slate-200 flex justify-between items-center text-xs text-slate-500 flex-shrink-0">
+                <span><i class="fa-solid fa-cloud-arrow-up text-emerald-600 mr-1"></i>資料已與 Google Sheets 即時同步</span>
+                <button onclick="closeLiveFeedModal()" class="px-4 py-2 bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition font-medium">
+                    關閉看板
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Record Modal -->
+    <div id="editModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="editModalTitle" class="font-bold text-lg text-econ-800 flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square text-amber-500"></i>
+                    <span>編輯報名資料</span>
+                </h3>
+                <button onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            
+            <form onsubmit="handleEditFormSubmit(event)" class="space-y-4">
+                <input type="hidden" id="editIsNew" value="false">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">學號 (主鍵)</label>
+                    <input type="text" id="editStudentId" required placeholder="例：B11301001" 
+                        class="w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-xl text-sm outline-none font-mono">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">姓名</label>
+                    <input type="text" id="editStudentName" required placeholder="請輸入姓名" 
+                        class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">報名組別</label>
+                    <select id="editGroup" required class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm outline-none">
+                        <option value="A">A 組 - 個體經濟研討</option>
+                        <option value="B">B 組 - 總體經濟與金融</option>
+                        <option value="C">C 組 - 數據分析與科技</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">電子信箱</label>
+                    <input type="email" id="editEmail" required placeholder="example@university.edu.tw" 
+                        class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm outline-none">
+                </div>
+
+                <div class="flex space-x-3 pt-3">
+                    <button type="button" onclick="closeEditModal()" class="w-1/2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-sm transition">
+                        取消
+                    </button>
+                    <button type="submit" id="editSubmitBtn" class="w-1/2 px-4 py-2.5 bg-econ-700 hover:bg-econ-800 text-white font-semibold rounded-xl text-sm shadow transition flex items-center justify-center space-x-1">
+                        <i class="fa-solid fa-floppy-disk mr-1"></i>
+                        <span>儲存修改</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admission Ticket Modal (Admission Proof) -->
+    <div id="ticketModal" class="fixed inset-0 bg-slate-900/75 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden overflow-y-auto">
+        <div class="max-w-lg w-full my-8">
+            
+            <!-- Modal Actions (No Print) -->
+            <div class="flex justify-between items-center mb-4 no-print text-white">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-circle-check text-emerald-400 text-xl"></i>
+                    <span class="font-bold text-base">報名成功！您的入場證明已生成</span>
+                </div>
+                <button onclick="closeTicketModal()" class="bg-white/20 hover:bg-white/30 text-white rounded-full p-2 transition">
+                    <i class="fa-solid fa-xmark w-5 h-5 flex items-center justify-center"></i>
+                </button>
+            </div>
+
+            <!-- The Ticket Container -->
+            <div class="bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200 transform transition-all">
+                
+                <!-- Ticket Top Header -->
+                <div class="bg-econ-800 text-white p-6 relative">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="bg-amber-500 text-econ-900 text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider">
+                                電子入場憑證 Pass
+                            </span>
+                            <h3 class="text-xl font-bold mt-2">2026 經濟系營隊活動</h3>
+                            <p class="text-slate-300 text-xs mt-0.5">國立大學經濟學系系學會 主辦</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs text-slate-400 block">入場序號</span>
+                            <span id="ticketSerial" class="font-mono text-sm font-bold text-amber-400">#ECO-1007-001</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ticket Middle Body -->
+                <div class="p-6 space-y-5 bg-gradient-to-b from-slate-50 to-white">
+                    
+                    <!-- User Info Card -->
+                    <div class="bg-slate-100/80 rounded-2xl p-4 border border-slate-200/80 grid grid-cols-2 gap-4">
+                        <div>
+                            <span class="text-[11px] font-semibold text-slate-400 uppercase block">姓名</span>
+                            <span id="ticketName" class="text-base font-bold text-slate-800">--</span>
+                        </div>
+                        <div>
+                            <span class="text-[11px] font-semibold text-slate-400 uppercase block">學號</span>
+                            <span id="ticketId" class="text-base font-mono font-bold text-slate-800">--</span>
+                        </div>
+                        <div>
+                            <span class="text-[11px] font-semibold text-slate-400 uppercase block">報名組別</span>
+                            <span id="ticketGroup" class="inline-block mt-0.5 px-3 py-0.5 rounded-md font-bold text-xs bg-econ-700 text-white">
+                                --
+                            </span>
+                        </div>
+                        <div>
+                            <span class="text-[11px] font-semibold text-slate-400 uppercase block">通知信箱</span>
+                            <span id="ticketEmail" class="text-xs font-medium text-slate-700 truncate block">--</span>
+                        </div>
+                    </div>
+
+                    <!-- Event Time & Venue -->
+                    <div class="space-y-2 text-xs">
+                        <div class="flex items-center text-slate-700 space-x-2">
+                            <i class="fa-solid fa-calendar-day text-econ-600 w-4 text-center"></i>
+                            <span class="font-medium">活動日期：10月7日 (晚上 7:00 - 9:00)</span>
+                        </div>
+                        <div class="flex items-center text-slate-700 space-x-2">
+                            <i class="fa-solid fa-location-dot text-econ-600 w-4 text-center"></i>
+                            <span class="font-medium">地點：經研館 101 大演講廳 (18:45 開放入場)</span>
+                        </div>
+                    </div>
+
+                    <!-- Cut Line Separator -->
+                    <div class="relative py-2 flex items-center justify-center">
+                        <div class="border-t-2 border-dashed border-slate-300 w-full"></div>
+                        <span class="absolute bg-white px-3 text-[10px] text-slate-400 uppercase tracking-widest font-semibold">
+                            報到請出示此憑證
+                        </span>
+                    </div>
+
+                    <!-- Ticket Bottom - Simulated QR Code & Barcode -->
+                    <div class="flex items-center justify-between pt-1">
+                        <div class="space-y-1">
+                            <p class="text-[11px] text-slate-500 font-medium">注意事項：</p>
+                            <ul class="text-[10px] text-slate-400 list-disc list-inside space-y-0.5">
+                                <li>入場時請向工作人員出示此畫面</li>
+                                <li>請準時於 18:45 前完成報到</li>
+                            </ul>
+                        </div>
+                        
+                        <!-- Simulated QR Code SVG -->
+                        <div class="bg-white p-2 border border-slate-200 rounded-xl shadow-sm flex flex-col items-center">
+                            <svg class="w-16 h-16" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M0 0h35v35H0zM10 10h15v15H10zM65 0h35v35H65zM75 10h15v15H75zM0 65h35v35H0zM10 75h15v15H10z" fill="#0f172a"/>
+                                <path d="M45 10h10v10H45zM45 30h10v10H45zM30 45h10v10H30zM50 45h20v10H50zM80 45h10v10H80zM45 65h10v10H45zM65 65h10v20H65zM85 75h10v20H85zM45 85h15v10H45z" fill="#0f172a"/>
+                            </svg>
+                            <span class="text-[9px] font-mono text-slate-400 mt-1">ENTRY VERIFIED</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Ticket Footer Info & Actions -->
+                <div class="bg-slate-100 px-6 py-4 border-t border-slate-200 flex flex-col sm:flex-row gap-2 justify-between items-center no-print">
+                    <button onclick="window.print()" class="w-full sm:w-auto px-4 py-2 bg-econ-700 hover:bg-econ-800 text-white text-xs font-bold rounded-xl shadow transition flex items-center justify-center space-x-1.5">
+                        <i class="fa-solid fa-print"></i>
+                        <span>列印 / 下載證明卡</span>
+                    </button>
+                    <button onclick="closeTicketModal()" class="w-full sm:w-auto px-4 py-2 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 text-xs font-semibold rounded-xl transition flex items-center justify-center">
+                        完成並返回主頁
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-slate-800 text-slate-400 text-center py-6 text-xs mt-12 border-t border-slate-700">
+        <p>© 2026 國立大學經濟學系營隊籌備小組. All Rights Reserved.</p>
+        <p class="mt-1 text-slate-500">活動諮詢：econ_camp@university.edu.tw | 10/7 晚上7-9點 敬請準時出席</p>
+    </footer>
+
+    <script>
+        // Google Apps Script Deployment Web App URL
+        // ⚠️ 請注意：網址結尾必須為 /exec，請勿使用 /library/ 或編輯器網址
+        const GAS_API_URL = "https://script.google.com/a/macros/g.ncu.edu.tw/s/AKfycbxUkcB4z4geFweWbX7_SPLT_B3vyuAoOKW5apo4E3sjH8OdwXtrgREcx8RsqqFyjclK2A/exec";
+
+        // Initial Mock Registrations Data (Fallback)
+        const defaultRegistrations = [
+            { id: "B11301012", name: "陳小明", group: "A", email: "chen@gmail.com", time: "2026-10-07 18:20" },
+            { id: "B11301025", name: "林雅婷", group: "B", email: "lin@yahoo.com.tw", time: "2026-10-07 18:25" },
+            { id: "B11301042", name: "張家豪", group: "C", email: "chang@outlook.com", time: "2026-10-07 18:32" }
+        ];
+
+        // Global State Variables
+        let isUnlocked = false;
+        let registrationsList = [];
+
+        // Initialize Data on Load
+        window.addEventListener('DOMContentLoaded', () => {
+            getStoredRegistrations();
+            fetchRegistrationsFromAPI();
+        });
+
+        // Get Registrations from LocalStorage fallback
+        function getStoredRegistrations() {
+            const data = localStorage.getItem('econ_camp_registrations');
+            if (!data) {
+                localStorage.setItem('econ_camp_registrations', JSON.stringify(defaultRegistrations));
+                registrationsList = defaultRegistrations;
+            } else {
+                try {
+                    registrationsList = JSON.parse(data);
+                } catch(e) {
+                    registrationsList = defaultRegistrations;
+                }
+            }
+            return registrationsList;
+        }
+
+        // Save Data to LocalStorage
+        function saveStoredRegistrations(data) {
+            registrationsList = data;
+            localStorage.setItem('econ_camp_registrations', JSON.stringify(data));
+        }
+
+        // READ: Fetch all registrations from Google Apps Script API
+        async function fetchRegistrationsFromAPI() {
+            showTableLoading(true);
+
+            // 檢查 API 網址格式是否為正確的 Web App /exec 網址
+            if (!GAS_API_URL.includes('/exec')) {
+                console.warn('API 網址格式不正確：網址必須以 /exec 結尾！');
+                const badge = document.getElementById('apiStatusBadge');
+                if (badge) {
+                    badge.innerText = "網址錯誤 (非 /exec 結尾)";
+                    badge.className = "bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-bold";
+                }
+                showTableLoading(false);
+                updateLiveFeedUI();
+                return;
+            }
+
+            try {
+                const response = await fetch(GAS_API_URL, { method: 'GET' });
+                const result = await response.json();
+
+                if (result.status === 'success' && Array.isArray(result.data)) {
+                    const mappedData = result.data.map(item => ({
+                        id: item.studentId,
+                        name: item.studentName,
+                        group: item.group,
+                        email: item.email,
+                        time: item.time
+                    }));
+                    saveStoredRegistrations(mappedData);
+                    document.getElementById('apiStatusBadge').innerText = "已連線試算表";
+                    document.getElementById('apiStatusBadge').className = "bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold";
+                } else {
+                    throw new Error(result.message || "API 回傳錯誤");
+                }
+            } catch (error) {
+                console.warn('API 讀取失敗，改用本機備份數據:', error);
+                document.getElementById('apiStatusBadge').innerText = "連線失敗 (使用離線資料)";
+                document.getElementById('apiStatusBadge').className = "bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-bold";
+            } finally {
+                showTableLoading(false);
+                updateLiveFeedUI();
+            }
+        }
+
+        // Form Submission Handler (CREATE)
+        async function handleFormSubmit(event) {
+            event.preventDefault();
+
+            const studentId = document.getElementById('studentId').value.trim();
+            const studentName = document.getElementById('studentName').value.trim();
+            const selectedGroup = document.querySelector('input[name="group"]:checked').value;
+            const studentEmail = document.getElementById('studentEmail').value.trim();
+
+            const now = new Date();
+            const timeString = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+            // Group Title Mapping
+            const groupNameMap = {
+                'A': 'A 組 - 個體經濟研討',
+                'B': 'B 組 - 總體經濟與金融',
+                'C': 'C 組 - 數據分析與科技'
+            };
+
+            const newRecord = {
+                id: studentId,
+                name: studentName,
+                group: selectedGroup,
+                email: studentEmail,
+                time: timeString
+            };
+
+            // Update Local Data immediately
+            registrationsList.unshift(newRecord);
+            saveStoredRegistrations(registrationsList);
+
+            // Populate Ticket Modal
+            document.getElementById('ticketName').innerText = studentName;
+            document.getElementById('ticketId').innerText = studentId;
+            document.getElementById('ticketGroup').innerText = groupNameMap[selectedGroup] || (selectedGroup + " 組");
+            document.getElementById('ticketEmail').innerText = studentEmail;
+            
+            // Generate Ticket Serial Number
+            const randomNum = Math.floor(100 + Math.random() * 900);
+            document.getElementById('ticketSerial').innerText = `#ECO-1007-${randomNum}`;
+
+            // Reset Form
+            document.getElementById('registrationForm').reset();
+
+            // Show Ticket Modal
+            document.getElementById('ticketModal').classList.remove('hidden');
+
+            // Send to Google Apps Script API (POST)
+            try {
+                await fetch(GAS_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({
+                        action: 'create',
+                        payload: {
+                            studentId: studentId,
+                            studentName: studentName,
+                            group: selectedGroup,
+                            email: studentEmail,
+                            time: timeString
+                        }
+                    })
+                });
+                fetchRegistrationsFromAPI(); // 重新同步
+            } catch(e) {
+                console.error("提交至試算表失敗: ", e);
+            }
+
+            // Refresh Dashboard UI
+            updateLiveFeedUI();
+        }
+
+        function openEditModal(studentId) {
+            const record = registrationsList.find(r => r.id === studentId);
+            if (!record) return;
+
+            document.getElementById('editIsNew').value = "false";
+            document.getElementById('editModalTitle').innerText = "編輯報名資料";
+            document.getElementById('editStudentId').value = record.id;
+            document.getElementById('editStudentId').readOnly = true;
+            document.getElementById('editStudentName').value = record.name;
+            document.getElementById('editGroup').value = record.group;
+            document.getElementById('editEmail').value = record.email;
+
+            document.getElementById('editModal').classList.remove('hidden');
+        }
+
+        function openAddAdminModal() {
+            document.getElementById('editIsNew').value = "true";
+            document.getElementById('editModalTitle').innerText = "手動新增報名資料";
+            document.getElementById('editStudentId').value = "";
+            document.getElementById('editStudentId').readOnly = false;
+            document.getElementById('editStudentName').value = "";
+            document.getElementById('editGroup').value = "A";
+            document.getElementById('editEmail').value = "";
+
+            document.getElementById('editModal').classList.remove('hidden');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.add('hidden');
+        }
+
+        async function handleEditFormSubmit(event) {
+            event.preventDefault();
+
+            const isNew = document.getElementById('editIsNew').value === "true";
+            const studentId = document.getElementById('editStudentId').value.trim();
+            const studentName = document.getElementById('editStudentName').value.trim();
+            const group = document.getElementById('editGroup').value;
+            const email = document.getElementById('editEmail').value.trim();
+
+            const now = new Date();
+            const timeString = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+            showTableLoading(true);
+
+            if (isNew) {
+                // Admin Create
+                const newRec = { id: studentId, name: studentName, group: group, email: email, time: timeString };
+                registrationsList.unshift(newRec);
+                saveStoredRegistrations(registrationsList);
+
+                try {
+                    await fetch(GAS_API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain' },
+                        body: JSON.stringify({
+                            action: 'create',
+                            payload: { studentId, studentName, group, email, time: timeString }
+                        })
+                    });
+                } catch(e) { console.error(e); }
+            } else {
+                // Admin Update
+                const idx = registrationsList.findIndex(r => r.id === studentId);
+                if (idx !== -1) {
+                    registrationsList[idx].name = studentName;
+                    registrationsList[idx].group = group;
+                    registrationsList[idx].email = email;
+                    saveStoredRegistrations(registrationsList);
+                }
+
+                try {
+                    await fetch(GAS_API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain' },
+                        body: JSON.stringify({
+                            action: 'update',
+                            payload: { studentId, studentName, group, email }
+                        })
+                    });
+                } catch(e) { console.error(e); }
+            }
+
+            closeEditModal();
+            showTableLoading(false);
+            updateLiveFeedUI();
+        }
+
+        async function deleteRecord(studentId) {
+            if (!confirm(`確定要刪除學號 [${studentId}] 的報名紀錄嗎？`)) return;
+
+            showTableLoading(true);
+
+            // Local Delete
+            registrationsList = registrationsList.filter(r => r.id !== studentId);
+            saveStoredRegistrations(registrationsList);
+
+            // API Delete
+            try {
+                await fetch(GAS_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'delete',
+                        payload: { studentId: studentId }
+                    })
+                });
+            } catch(e) { console.error(e); }
+
+            showTableLoading(false);
+            updateLiveFeedUI();
+        }
+
+        function showTableLoading(show) {
+            const loader = document.getElementById('tableLoading');
+            if (loader) {
+                if (show) loader.classList.remove('hidden');
+                else loader.classList.add('hidden');
+            }
+        }
+
+        function openPasswordModal() {
+            if (isUnlocked) {
+                openLiveFeedModal();
+            } else {
+                document.getElementById('passwordModal').classList.remove('hidden');
+                document.getElementById('feedPassword').focus();
+            }
+        }
+
+        function closePasswordModal() {
+            document.getElementById('passwordModal').classList.add('hidden');
+            document.getElementById('passwordError').classList.add('hidden');
+            document.getElementById('feedPassword').value = '';
+        }
+
+        function verifyPassword(event) {
+            event.preventDefault();
+            const passwordInput = document.getElementById('feedPassword').value;
+
+            if (passwordInput === '1234') {
+                isUnlocked = true;
+                closePasswordModal();
+                
+                const lockIcon = document.getElementById('lockIcon');
+                lockIcon.className = "fa-solid fa-lock-open text-emerald-400";
+                
+                openLiveFeedModal();
+            } else {
+                document.getElementById('passwordError').classList.remove('hidden');
+            }
+        }
+
+        function openLiveFeedModal() {
+            fetchRegistrationsFromAPI();
+            document.getElementById('liveFeedModal').classList.remove('hidden');
+        }
+
+        function closeLiveFeedModal() {
+            document.getElementById('liveFeedModal').classList.add('hidden');
+        }
+
+        function closeTicketModal() {
+            document.getElementById('ticketModal').classList.add('hidden');
+        }
+
+        // Render Dynamic Status Table and Stats Counters
+        function updateLiveFeedUI() {
+            const data = registrationsList;
+            const tbody = document.getElementById('feedTableBody');
+            
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            let countA = 0;
+            let countB = 0;
+            let countC = 0;
+
+            if (data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400">目前尚無任何報名紀錄</td></tr>`;
+            }
+
+            data.forEach((item) => {
+                if (item.group === 'A') countA++;
+                if (item.group === 'B') countB++;
+                if (item.group === 'C') countC++;
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition border-b border-slate-100";
+                tr.innerHTML = `
+                    <td class="p-3 text-slate-400 font-mono text-xs">${item.time || '--'}</td>
+                    <td class="p-3 font-mono font-medium text-slate-700">${item.id}</td>
+                    <td class="p-3 font-semibold text-slate-800">${item.name}</td>
+                    <td class="p-3">
+                        <span class="px-2 py-0.5 rounded text-xs font-bold ${
+                            item.group === 'A' ? 'bg-blue-100 text-blue-700' :
+                            item.group === 'B' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                        }">
+                            ${item.group} 組
+                        </span>
+                    </td>
+                    <td class="p-3 font-mono text-slate-500 text-xs">${item.email}</td>
+                    <td class="p-3 text-center">
+                        <div class="inline-flex items-center space-x-2">
+                            <button onclick="openEditModal('${item.id}')" title="編輯" class="p-1.5 text-slate-400 hover:text-econ-600 transition">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button onclick="deleteRecord('${item.id}')" title="刪除" class="p-1.5 text-slate-400 hover:text-red-500 transition">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Update Counts
+            document.getElementById('statTotal').innerText = data.length;
+            document.getElementById('statGroupA').innerText = countA;
+            document.getElementById('statGroupB').innerText = countB;
+            document.getElementById('statGroupC').innerText = countC;
+        }
+    </script>
+</body>
+</html>
